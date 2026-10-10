@@ -73,10 +73,10 @@ resource "cloudminator_bucket" "b" {
 				),
 			},
 			{
-				ResourceName:      "cloudminator_bucket.b",
-				ImportState:       true,
-				ImportStateId:     "acme/prod/backups",
-				ImportStateVerify: true,
+				ResourceName:            "cloudminator_bucket.b",
+				ImportState:             true,
+				ImportStateId:           "acme/prod/backups",
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"timeouts"},
 			},
 			{

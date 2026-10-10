@@ -17,7 +17,7 @@ import (
 
 // vmUpdatable: name+tags via :update, size+disk_gb via :resize, running via
 // :start/:stop. Everything else forces replacement.
-// TODO(ADR 0061): flip further fields here as the platform's :update grows.
+// TODO(ADR 0062): flip further fields here as the platform's :update grows.
 var vmUpdatable = updatable{"name": true, "tags": true, "size": true, "disk_gb": true, "running": true}
 
 var (
@@ -98,8 +98,8 @@ func (r *vmResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp 
 					int64planmodifier.RequiresReplaceIf(diskShrinks, "Shrinking a disk replaces the VM.", "Shrinking a disk replaces the VM."),
 				),
 			},
-			"region":  optionalComputedString(u, "region", "Region id. Defaults to the platform's first region, or the subnet's region when `subnet_id` is set."),
-			"zone":    optionalComputedString(u, "zone", "Zone id within the region. Empty lets the platform choose."),
+			"region": optionalComputedString(u, "region", "Region id. Defaults to the platform's first region, or the subnet's region when `subnet_id` is set."),
+			"zone":   optionalComputedString(u, "zone", "Zone id within the region. Empty lets the platform choose."),
 			"ssh_keys": schema.ListAttribute{
 				MarkdownDescription: "SSH public keys (authorized_keys lines) installed by cloud-init.",
 				ElementType:         types.StringType,

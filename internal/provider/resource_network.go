@@ -15,7 +15,7 @@ import (
 // ============================== VPC ==============================
 
 // vpcUpdatable: name+tags via :update.
-// TODO(ADR 0061): flip further fields here as the platform's :update grows.
+// TODO(ADR 0062): flip further fields here as the platform's :update grows.
 var vpcUpdatable = updatable{"name": true, "tags": true}
 
 var (
@@ -63,14 +63,14 @@ func (r *vpcResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp
 				Required:            true,
 				PlanModifiers:       u.str("name"),
 			},
-			"tags":      tagsAttr(u),
-			"cidr":      optionalComputedString(u, "cidr", "IPv4 range. Omit to have the platform allocate one."),
+			"tags": tagsAttr(u),
+			"cidr": optionalComputedString(u, "cidr", "IPv4 range. Omit to have the platform allocate one."),
 			"region": schema.StringAttribute{
 				MarkdownDescription: "Region id (see `cloudminator_regions`).",
 				Required:            true,
 				PlanModifiers:       u.str("region"),
 			},
-			"phase":     phaseAttr(),
+			"phase": phaseAttr(),
 		},
 		Blocks: map[string]schema.Block{
 			"timeouts": timeouts.Block(ctx, timeouts.Opts{Create: true, Update: true, Delete: true}),
@@ -180,7 +180,7 @@ func vpcToState(env client.Envelope[client.VPCSpec], m *vpcModel) {
 // ============================== Subnet ==============================
 
 // subnetUpdatable: name, tags, snat, dhcp via :update.
-// TODO(ADR 0061): flip further fields here as the platform's :update grows.
+// TODO(ADR 0062): flip further fields here as the platform's :update grows.
 var subnetUpdatable = updatable{"name": true, "tags": true, "snat": true, "dhcp": true}
 
 var (
@@ -296,7 +296,7 @@ func (r *subnetResource) Create(ctx context.Context, req resource.CreateRequest,
 		resp.Diagnostics.AddError("Error waiting for subnet to become ready", err.Error())
 		return
 	}
-	// Workaround (ADR 0061 follow-up): platform SubnetService.Create ignores the
+	// Workaround (ADR 0062 follow-up): platform SubnetService.Create ignores the
 	// requested snat/dhcp and always sets both true, so apply a requested false
 	// with :update once the subnet is Running, before saving state.
 	if env.Spec.SNAT != spec.SNAT || env.Spec.DHCP != spec.DHCP {
@@ -386,7 +386,7 @@ func subnetToState(env client.Envelope[client.SubnetSpec], m *subnetModel) {
 // ============================== Firewall rule ==============================
 
 // firewallUpdatable: everything but subnet_id via :update.
-// TODO(ADR 0061): flip further fields here as the platform's :update grows.
+// TODO(ADR 0062): flip further fields here as the platform's :update grows.
 var firewallUpdatable = updatable{"name": true, "tags": true, "protocol": true, "port": true, "source": true, "comment": true}
 
 var (

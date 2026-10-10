@@ -85,7 +85,7 @@ func configureDataSource(req datasource.ConfigureRequest, resp *datasource.Confi
 	return d
 }
 
-// --- the in-place vs replace seam (ADR 0061) ---
+// --- the in-place vs replace seam (ADR 0062) ---
 //
 // Each resource declares the set of attributes the platform can change in place
 // (via `POST …/{id}:update` or a dedicated action). Every other configurable

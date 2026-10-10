@@ -14,7 +14,7 @@ import (
 
 // bucketUpdatable: tags, quota_bytes and max_objects via :update. The name,
 // placement and storage class are fixed for the bucket's life.
-// TODO(ADR 0061): flip further fields here as the platform's :update grows;
+// TODO(ADR 0062): flip further fields here as the platform's :update grows;
 // Update sends whichever updatable attribute changed.
 var bucketUpdatable = updatable{"tags": true, "quota_bytes": true, "max_objects": true}
 

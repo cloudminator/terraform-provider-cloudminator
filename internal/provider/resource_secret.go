@@ -12,7 +12,7 @@ import (
 )
 
 // secretUpdatable: name, tags and data via :update (data writes a new version).
-// TODO(ADR 0061): flip further fields here as the platform's :update grows.
+// TODO(ADR 0062): flip further fields here as the platform's :update grows.
 var secretUpdatable = updatable{"name": true, "tags": true, "data": true}
 
 var (

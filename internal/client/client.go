@@ -149,7 +149,7 @@ func (c *Client) send(ctx context.Context, r request, payload []byte) (err error
 		}
 		return err, true
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	raw, err := io.ReadAll(io.LimitReader(resp.Body, 16<<20))
 	if err != nil {
 		return err, true
