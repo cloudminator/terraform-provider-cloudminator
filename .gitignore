@@ -1,0 +1,18 @@
+# Binaries
+terraform-provider-cloudminator
+/dist/
+*.exe
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+!examples/**/*.tfvars.example
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
