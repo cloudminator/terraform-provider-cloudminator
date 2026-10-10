@@ -1,0 +1,132 @@
+name: Tests
+
+# No paths-ignore: "CI ok" is a required check, and a skipped workflow would leave a
+# docs-only PR waiting on it forever.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same PR supersedes the running checks; main always runs to the end.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go mod download
+      - run: go build -v ./...
+      - run: go vet ./...
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.14.0
+
+  generate:
+    name: Generated docs are current
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_wrapper: false
+      - run: go generate ./...
+      - name: git diff
+        run: |
+          git diff --compact-summary --exit-code || \
+            (echo; echo "Unexpected difference after code generation. Run 'go generate ./...' and commit."; exit 1)
+
+  test-terraform:
+    name: Terraform ${{ matrix.terraform }} — unit tests + examples
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform: ["1.15.*", "1.16.*"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ matrix.terraform }}
+          terraform_wrapper: false
+      - run: go test -race -v -cover ./...
+        timeout-minutes: 10
+      - run: scripts/validate-examples.sh terraform
+
+  test-opentofu:
+    name: OpenTofu ${{ matrix.tofu }} — unit tests + examples
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        tofu: ["1.12.*", "1.13.*"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: opentofu/setup-opentofu@v2
+        with:
+          tofu_version: ${{ matrix.tofu }}
+          tofu_wrapper: false
+      - name: Unit tests against OpenTofu
+        run: |
+          export TF_ACC_TERRAFORM_PATH="$(command -v tofu)"
+          export TF_ACC_PROVIDER_HOST=registry.opentofu.org
+          go test -race -v -cover ./...
+        timeout-minutes: 10
+      - run: scripts/validate-examples.sh tofu
+
+  vulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: golang/govulncheck-action@v1
+        with:
+          go-version-file: go.mod
+
+  # The ONE check branch protection requires. It aggregates every job above, so the
+  # ruleset never has to name a matrix entry (renaming a Terraform/OpenTofu version
+  # would otherwise silently drop it from the required set).
+  ci-ok:
+    name: CI ok
+    if: always()
+    needs: [build, generate, test-terraform, test-opentofu, vulncheck]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: All required jobs succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "job results: $RESULTS"
+          for r in $RESULTS; do
+            if [ "$r" != "success" ]; then echo "::error::a required job ended '$r'"; exit 1; fi
+          done
