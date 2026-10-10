@@ -4,7 +4,14 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      # The plugin framework, plugin-go, testing and docs move together; one PR, not five.
+      terraform-plugin:
+        patterns: ["github.com/hashicorp/terraform-plugin-*"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,18 +1,19 @@
 name: Tests
 
+# No paths-ignore: "CI ok" is a required check, and a skipped workflow would leave a
+# docs-only PR waiting on it forever.
 on:
   pull_request:
-    paths-ignore:
-      - "README.md"
-      - "CHANGELOG.md"
   push:
     branches: [main]
-    paths-ignore:
-      - "README.md"
-      - "CHANGELOG.md"
 
 permissions:
   contents: read
+
+# A newer push to the same PR supersedes the running checks; main always runs to the end.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
@@ -101,3 +102,31 @@ jobs:
           go test -race -v -cover ./...
         timeout-minutes: 10
       - run: scripts/validate-examples.sh tofu
+
+  vulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: golang/govulncheck-action@v1
+        with:
+          go-version-file: go.mod
+
+  # The ONE check branch protection requires. It aggregates every job above, so the
+  # ruleset never has to name a matrix entry (renaming a Terraform/OpenTofu version
+  # would otherwise silently drop it from the required set).
+  ci-ok:
+    name: CI ok
+    if: always()
+    needs: [build, generate, test-terraform, test-opentofu, vulncheck]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: All required jobs succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "job results: $RESULTS"
+          for r in $RESULTS; do
+            if [ "$r" != "success" ]; then echo "::error::a required job ended '$r'"; exit 1; fi
+          done
