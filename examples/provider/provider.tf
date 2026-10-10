@@ -7,9 +7,9 @@ terraform {
 }
 
 # Credentials are best supplied through the environment:
-#   CLOUDMINATOR_ENDPOINT, CLOUDMINATOR_API_KEY, CLOUDMINATOR_ORG, CLOUDMINATOR_PROJECT
+#   CLOUDMINATOR_API_KEY, CLOUDMINATOR_ORG, CLOUDMINATOR_PROJECT
+# endpoint defaults to https://api.cloudminator.com (override with CLOUDMINATOR_ENDPOINT).
 provider "cloudminator" {
-  endpoint = "https://platform.example.com"
-  org      = "acme"
-  project  = "default"
+  org     = "acme"
+  project = "default"
 }

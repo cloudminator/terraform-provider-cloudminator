@@ -15,6 +15,10 @@ import (
 	"github.com/cloudminator/terraform-provider-cloudminator/internal/client"
 )
 
+// DefaultEndpoint is the public Cloudminator API, used when neither the endpoint
+// argument nor CLOUDMINATOR_ENDPOINT is set.
+const DefaultEndpoint = "https://api.cloudminator.com"
+
 // Environment variables read when the matching provider argument is unset.
 const (
 	EnvEndpoint = "CLOUDMINATOR_ENDPOINT"
@@ -61,8 +65,8 @@ func (p *cloudminatorProvider) Schema(_ context.Context, _ provider.SchemaReques
 			"Works with Terraform and OpenTofu.",
 		Attributes: map[string]schema.Attribute{
 			"endpoint": schema.StringAttribute{
-				MarkdownDescription: "Base URL of the Cloudminator platform API, e.g. `https://platform.example.com`. " +
-					"May also be set with the `" + EnvEndpoint + "` environment variable.",
+				MarkdownDescription: "Base URL of the Cloudminator platform API. Defaults to `" + DefaultEndpoint + "`; " +
+					"override it (or set the `" + EnvEndpoint + "` environment variable) for another environment.",
 				Optional: true,
 			},
 			"api_key": schema.StringAttribute{
@@ -102,12 +106,8 @@ func (p *cloudminatorProvider) Configure(ctx context.Context, req provider.Confi
 		// Values come from not-yet-applied resources; defer until they are known.
 		return
 	}
-	endpoint := valueOrEnv(cfg.Endpoint, EnvEndpoint)
+	endpoint := resolveEndpoint(cfg.Endpoint)
 	apiKey := valueOrEnv(cfg.APIKey, EnvAPIKey)
-	if endpoint == "" {
-		resp.Diagnostics.AddAttributeError(path.Root("endpoint"), "Missing Cloudminator API endpoint",
-			"Set the provider's endpoint argument or the "+EnvEndpoint+" environment variable.")
-	}
 	if apiKey == "" {
 		resp.Diagnostics.AddAttributeWarning(path.Root("api_key"), "No Cloudminator API key",
 			"Neither api_key nor "+EnvAPIKey+" is set. Only public catalog data sources (regions, flavors, images, plans) will work.")
@@ -150,4 +150,13 @@ func (p *cloudminatorProvider) DataSources(_ context.Context) []func() datasourc
 		NewImagesDataSource,
 		NewPlansDataSource,
 	}
+}
+
+// resolveEndpoint picks the API base URL: the endpoint argument, else
+// CLOUDMINATOR_ENDPOINT, else DefaultEndpoint.
+func resolveEndpoint(v types.String) string {
+	if e := valueOrEnv(v, EnvEndpoint); e != "" {
+		return e
+	}
+	return DefaultEndpoint
 }

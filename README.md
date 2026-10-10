@@ -13,7 +13,7 @@ terraform {
   }
 }
 
-provider "cloudminator" {} # CLOUDMINATOR_ENDPOINT, CLOUDMINATOR_API_KEY, CLOUDMINATOR_ORG
+provider "cloudminator" {} # CLOUDMINATOR_API_KEY, CLOUDMINATOR_ORG; endpoint defaults to https://api.cloudminator.com
 
 resource "cloudminator_bucket" "backups" {
   name = "acme-backups"

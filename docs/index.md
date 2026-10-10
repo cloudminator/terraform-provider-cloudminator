@@ -16,10 +16,12 @@ Create an API key in the Cloudminator console (*Organization → API keys*) and 
 to the provider, preferably through the environment:
 
 ```shell
-export CLOUDMINATOR_ENDPOINT="https://platform.example.com"
 export CLOUDMINATOR_API_KEY="cm_…"
 export CLOUDMINATOR_ORG="acme"
 ```
+
+The provider talks to `https://api.cloudminator.com` by default; set `CLOUDMINATOR_ENDPOINT`
+(or the `endpoint` argument) to target another environment.
 
 The key acts with the role and scope it was created with; a plan fails with a `403`
 for anything outside it.
@@ -54,11 +56,11 @@ terraform {
 }
 
 # Credentials are best supplied through the environment:
-#   CLOUDMINATOR_ENDPOINT, CLOUDMINATOR_API_KEY, CLOUDMINATOR_ORG, CLOUDMINATOR_PROJECT
+#   CLOUDMINATOR_API_KEY, CLOUDMINATOR_ORG, CLOUDMINATOR_PROJECT
+# endpoint defaults to https://api.cloudminator.com (override with CLOUDMINATOR_ENDPOINT).
 provider "cloudminator" {
-  endpoint = "https://platform.example.com"
-  org      = "acme"
-  project  = "default"
+  org     = "acme"
+  project = "default"
 }
 ```
 
@@ -68,6 +70,6 @@ provider "cloudminator" {
 ### Optional
 
 - `api_key` (String, Sensitive) API key (`cm_…`) used as a bearer token. Create one in the console under *Organization → API keys*. May also be set with `CLOUDMINATOR_API_KEY`.
-- `endpoint` (String) Base URL of the Cloudminator platform API, e.g. `https://platform.example.com`. May also be set with the `CLOUDMINATOR_ENDPOINT` environment variable.
+- `endpoint` (String) Base URL of the Cloudminator platform API. Defaults to `https://api.cloudminator.com`; override it (or set the `CLOUDMINATOR_ENDPOINT` environment variable) for another environment.
 - `org` (String) Default organization slug for resources that do not set `org`. May also be set with `CLOUDMINATOR_ORG`.
 - `project` (String) Default project slug for project-scoped resources that do not set `project`. May also be set with `CLOUDMINATOR_PROJECT`. Defaults to `default`.
